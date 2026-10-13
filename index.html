@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101d1b">
+<title>Barman Sacra Lite</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#0b1514;color:#edf7f3}
+*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(135deg,#12372e,#111e20);padding:32px 18px 25px;border-bottom:1px solid #345248}
+.wrap{max-width:840px;margin:auto}h1{margin:0;font-size:clamp(2rem,7vw,3rem);letter-spacing:-.05em}.sub{color:#b6d4c7;margin:8px 0 0}
+main{padding:20px 18px 60px}input,select{width:100%;background:#172723;border:1px solid #3c5d50;color:#fff;border-radius:13px;padding:14px;font-size:16px}
+.controls{display:grid;grid-template-columns:2fr 1fr;gap:10px}#count{color:#b5cfc4;font-size:14px;margin:18px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+article{background:#142521;border:1px solid #304a40;border-radius:17px;padding:19px}article h2{margin:4px 0 6px;font-size:21px}
+.tag{font-size:12px;color:#9ee6c2;text-transform:uppercase;letter-spacing:.1em}ul{padding-left:19px;line-height:1.8;margin:12px 0}
+.meta{font-size:13px;color:#b4c9c0}details{border-top:1px solid #304a40;padding-top:12px;margin-top:12px}summary{cursor:pointer;color:#a9e8c9;font-weight:650}
+.empty{padding:25px;color:#b4c9c0;text-align:center}footer{color:#91a89e;font-size:12px;margin-top:30px;line-height:1.5}
+@media(max-width:460px){.controls{grid-template-columns:1fr}header{padding-top:26px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="tag">Consultazione professionale · Prototipo</div><h1>Barman Sacra <span style="color:#8ee2b2">Lite</span></h1><p class="sub">Ricette chiare. Servizio rapido. Nessuna complicazione.</p></div></header>
+<main class="wrap">
+<div class="controls"><input id="q" type="search" placeholder="Cerca cocktail o ingrediente…" aria-label="Cerca cocktail"><select id="cat" aria-label="Filtra categoria"><option value="">Tutte le categorie</option></select></div>
+<p id="count" role="status"></p><section class="cards" id="cards" aria-label="Ricette"></section>
+<footer>Campione iniziale per test funzionale. Le ricette e le dosi devono essere validate prima della pubblicazione commerciale. Nessun dato viene inviato a server esterni.</footer>
+</main>
+<script>
+"use strict";
+const recipes=[
+{name:"Brandy Alexander",aliases:["Alexander"],category:"After Dinner",ingredients:[["Brandy","2 cl"],["Crema cacao scura","2 cl"],["Crema di latte","2 cl"]],technique:"Shake and strain",glass:"Coppa cocktail",garnish:"Noce moscata"},
+{name:"Black Russian",aliases:[],category:"After Dinner",ingredients:[["Vodka","5 cl"],["Liquore al caffè (Kahlúa)","2 cl"]],technique:"Build",glass:"Tumbler basso",garnish:"Nessuna"},
+{name:"White Russian",aliases:[],category:"After Dinner",ingredients:[["Vodka","5 cl"],["Liquore al caffè","2 cl"],["Panna o crema di latte","Da verificare"]],technique:"Da verificare",glass:"Tumbler basso",garnish:"Da verificare"}
+];
+const q=document.querySelector("#q"),cat=document.querySelector("#cat"),cards=document.querySelector("#cards"),count=document.querySelector("#count");
+for(const c of [...new Set(recipes.map(r=>r.category))].sort()){const o=document.createElement("option");o.value=c;o.textContent=c;cat.append(o)}
+const norm=s=>s.toLocaleLowerCase("it").normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+function render(){
+const term=norm(q.value.trim()),category=cat.value;
+const filtered=recipes.filter(r=>(!category||r.category===category)&&norm([r.name,...r.aliases,...r.ingredients.map(i=>i[0])].join(" ")).includes(term));
+count.textContent=filtered.length+" ricett"+(filtered.length===1?"a":"e")+" trovate";
+cards.replaceChildren();
+if(!filtered.length){const p=document.createElement("p");p.className="empty";p.textContent="Nessuna ricetta trovata.";cards.append(p);return}
+for(const r of filtered){
+const article=document.createElement("article");
+const tag=document.createElement("div");tag.className="tag";tag.textContent=r.category;article.append(tag);
+const h=document.createElement("h2");h.textContent=r.name;article.append(h);
+const ul=document.createElement("ul");for(const [ingredient,amount] of r.ingredients){const li=document.createElement("li");li.textContent=ingredient+" — "+amount;ul.append(li)}article.append(ul);
+const d=document.createElement("details"),s=document.createElement("summary");s.textContent="Tecnica e servizio";d.append(s);
+for(const [label,val] of [["Preparazione",r.technique],["Bicchiere",r.glass],["Decorazione",r.garnish]]){const p=document.createElement("p");p.className="meta";const b=document.createElement("strong");b.textContent=label+": ";p.append(b,document.createTextNode(val));d.append(p)}
+article.append(d);cards.append(article)
+}}
+q.addEventListener("input",render);cat.addEventListener("change",render);render();
+</script>
+</body></html>
